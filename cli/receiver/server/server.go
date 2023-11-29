@@ -189,6 +189,7 @@ func (s *Server) handleConn(conn net.Conn) {
 						exportPacket.Longitude = subRecData.Longitude
 						exportPacket.Speed = subRecData.Speed
 						exportPacket.Course = subRecData.Direction
+						exportPacket.DigitalInputs = subRecData.DigitalInputs
 					case *egts.SrExtPosData:
 						log.Debug("Разбор подзаписи EGTS_SR_EXT_POS_DATA")
 						exportPacket.Nsat = subRecData.Satellites
