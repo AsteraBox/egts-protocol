@@ -3,6 +3,7 @@ package storage
 import (
 	"errors"
 
+	kafkawrt "github.com/kuznetsovin/egts-protocol/cli/receiver/storage/store/kafka"
 	"github.com/kuznetsovin/egts-protocol/cli/receiver/storage/store/mysql"
 	"github.com/kuznetsovin/egts-protocol/cli/receiver/storage/store/nats"
 	"github.com/kuznetsovin/egts-protocol/cli/receiver/storage/store/postgresql"
@@ -19,13 +20,13 @@ type Store interface {
 	Saver
 }
 
-//Saver интерфейс для подключения внешних хранилищ
+// Saver интерфейс для подключения внешних хранилищ
 type Saver interface {
 	// Save сохранение в хранилище
 	Save(interface{ ToBytes() ([]byte, error) }) error
 }
 
-//Connector интерфейс для подключения внешних хранилищ
+// Connector интерфейс для подключения внешних хранилищ
 type Connector interface {
 	// Init установка соединения с хранилищем
 	Init(map[string]string) error
@@ -34,17 +35,17 @@ type Connector interface {
 	Close() error
 }
 
-//Repository набор выходных хранилищ
+// Repository набор выходных хранилищ
 type Repository struct {
 	storages []Saver
 }
 
-//AddStore добавляет хранилище для сохранения данных
+// AddStore добавляет хранилище для сохранения данных
 func (r *Repository) AddStore(s Saver) {
 	r.storages = append(r.storages, s)
 }
 
-//Save сохраняет данные во все установленные хранилища
+// Save сохраняет данные во все установленные хранилища
 func (r *Repository) Save(m interface{ ToBytes() ([]byte, error) }) error {
 	for _, store := range r.storages {
 		if err := store.Save(m); err != nil {
@@ -54,7 +55,7 @@ func (r *Repository) Save(m interface{ ToBytes() ([]byte, error) }) error {
 	return nil
 }
 
-//LoadStorages загружает хранилища из структуры конфига
+// LoadStorages загружает хранилища из структуры конфига
 func (r *Repository) LoadStorages(storages map[string]map[string]string) error {
 	if len(storages) == 0 {
 		return InvalidStorage
@@ -63,6 +64,8 @@ func (r *Repository) LoadStorages(storages map[string]map[string]string) error {
 	var db Store
 	for store, params := range storages {
 		switch store {
+		case "kafka":
+			db = &kafkawrt.Connector{}
 		case "rabbitmq":
 			db = &rabbitmq.Connector{}
 		case "postgresql":
@@ -88,7 +91,7 @@ func (r *Repository) LoadStorages(storages map[string]map[string]string) error {
 	return nil
 }
 
-//NewRepository создает пустой репозиторий
+// NewRepository создает пустой репозиторий
 func NewRepository() *Repository {
 	return &Repository{}
 }
