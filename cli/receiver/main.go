@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+
 	"github.com/kuznetsovin/egts-protocol/cli/receiver/config"
 	"github.com/kuznetsovin/egts-protocol/cli/receiver/server"
 	"github.com/kuznetsovin/egts-protocol/cli/receiver/storage"
@@ -22,7 +23,7 @@ func main() {
 		log.Fatalf("Ошибка парсинга конфига: %v", err)
 	}
 
-	log.SetLevel(cfg.GetLogLevel())
+	ConfigureLogger(cfg.GetLogLevel())
 
 	storages := storage.NewRepository()
 	if err := storages.LoadStorages(cfg.Store); err != nil {
