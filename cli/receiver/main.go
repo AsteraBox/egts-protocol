@@ -26,7 +26,7 @@ func main() {
 	ConfigureLogger(cfg.GetLogLevel())
 
 	storages := storage.NewRepository()
-	if err := storages.LoadStorages(cfg.Store); err != nil {
+	if err := storages.LoadStorages(cfg.Storage); err != nil {
 		log.Errorf("ошибка загрузка хранилища: %v", err)
 
 		// TODO: clear after test

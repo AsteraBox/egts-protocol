@@ -22,7 +22,7 @@ func TestIntegration(t *testing.T) {
 		return
 	}
 
-	pg_conf, ok := conf.Store["postgresql"]
+	pg_conf, ok := conf.Storage["postgresql"]
 	if !assert.True(t, ok) {
 		return
 	}
@@ -32,14 +32,14 @@ func TestIntegration(t *testing.T) {
 		return
 	}
 
-	redis_conf, ok := conf.Store["redis"]
+	redis_conf, ok := conf.Storage["redis"]
 	if !assert.True(t, ok) {
 		return
 	}
 
 	redis_store := initTestRedis(redis_conf)
 
-	mysql_conf, ok := conf.Store["mysql"]
+	mysql_conf, ok := conf.Storage["mysql"]
 	if !assert.True(t, ok) {
 		return
 	}
@@ -50,7 +50,7 @@ func TestIntegration(t *testing.T) {
 	}
 
 	storages := storage.NewRepository()
-	err = storages.LoadStorages(conf.Store)
+	err = storages.LoadStorages(conf.Storage)
 	if !assert.NoError(t, err) {
 		return
 	}

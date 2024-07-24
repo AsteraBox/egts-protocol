@@ -1,10 +1,11 @@
 package config
 
 import (
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestConfigLoad(t *testing.T) {
@@ -47,7 +48,7 @@ storage:
 			Port:     "5020",
 			ConnTTl:  10,
 			LogLevel: "DEBUG",
-			Store: map[string]map[string]string{
+			Storage: map[string]map[string]string{
 				"postgresql": {
 					"host":     "localhost",
 					"port":     "5432",
