@@ -91,6 +91,17 @@ Parameters description:
 - *log_level* - logging level
 - *storage* - section with storage configs. (see [example](./configs/receiver.yaml))
 
+Configuration options can be overrided by setting environment variables. 
+Use `-e` parameter in `docker run` command, use configuration keys in uppercase as variable name:
+```
+docker run ... -e LOG_LEVEL=WARNING ...
+```
+
+Use underscore for delimitation parts in complex keys:
+```
+-e STORAGE_KAFKA_TOPIC=kafka_topic
+```
+
 ## Usage only Golang EGTS library
 
 Example for encoding packet:
