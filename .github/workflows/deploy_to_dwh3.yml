@@ -15,7 +15,7 @@ jobs:
       HOST: "0.0.0.0"
       PORT: "6000"
       CONN_LIVE_SEC: "10"
-      LOG_LEVEL: "DEBUG"
+      LOG_LEVEL: "INFO"
 
     steps:
       - name: Check for actual
