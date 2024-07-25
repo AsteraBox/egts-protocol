@@ -1,4 +1,4 @@
-FROM golang:1.18 AS egts-builder
+FROM golang:1.20 AS egts-builder
 
 ENV GO111MODULE=on
 

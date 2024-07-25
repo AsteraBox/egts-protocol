@@ -5,11 +5,13 @@ package config
 */
 
 import (
-	log "github.com/sirupsen/logrus"
-	"os"
+	"fmt"
+	"path/filepath"
+	"strings"
 	"time"
 
-	"gopkg.in/yaml.v2"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 type Settings struct {
@@ -17,7 +19,7 @@ type Settings struct {
 	Port     string                       `yaml:"port"`
 	ConnTTl  int                          `yaml:"conn_ttl"`
 	LogLevel string                       `yaml:"log_level"`
-	Store    map[string]map[string]string `yaml:"storage"`
+	Storage  map[string]map[string]string `yaml:"storage"`
 }
 
 func (s *Settings) GetEmptyConnTTL() time.Duration {
@@ -30,31 +32,48 @@ func (s *Settings) GetListenAddress() string {
 func (s *Settings) GetLogLevel() log.Level {
 	var lvl log.Level
 
-	switch s.LogLevel {
+	switch strings.ToUpper(s.LogLevel) {
 	case "DEBUG":
 		lvl = log.DebugLevel
-		break
 	case "INFO":
 		lvl = log.InfoLevel
-		break
-	case "WARN":
+	case "WARNING", "WARN":
 		lvl = log.WarnLevel
-		break
 	case "ERROR":
 		lvl = log.ErrorLevel
-		break
 	default:
 		lvl = log.InfoLevel
 	}
 	return lvl
 }
 
-func New(confPath string) (Settings, error) {
-	c := Settings{}
-	data, err := os.ReadFile(confPath)
+func New(configPath string) (*Settings, error) {
+	viper.SetDefault("Host", "0.0.0.0")
+	viper.SetDefault("Port", "6000")
+	viper.SetDefault("ConnTTl", 10)
+	viper.SetDefault("LogLevel", "DEBUG")
+
+	viper.RegisterAlias("ConnTTl", "con_live_sec")
+	viper.RegisterAlias("LogLevel", "log_level")
+
+	viper.AddConfigPath(filepath.Dir(configPath))
+	viper.AddConfigPath(".")
+	viper.SetConfigName(filepath.Base(configPath))
+	viper.SetConfigType(filepath.Ext(configPath)[1:])
+
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(`.`, `_`))
+
+	err := viper.ReadInConfig()
 	if err != nil {
-		return c, err
+		return nil, fmt.Errorf("could not read the config file: %v", err)
 	}
-	err = yaml.Unmarshal(data, &c)
-	return c, err
+
+	var config *Settings
+	err = viper.Unmarshal(&config)
+	if err != nil {
+		return nil, fmt.Errorf("could not unmarshal: %v", err)
+	}
+
+	return config, nil
 }
