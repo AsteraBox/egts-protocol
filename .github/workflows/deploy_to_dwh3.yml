@@ -1,7 +1,7 @@
 name: Deploy to dwh3
 
 on:
-  workflow_dispatch:
+  workflow_dispatch
 
 jobs:
   build_deploy_to_dwh3:
