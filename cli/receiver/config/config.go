@@ -48,10 +48,10 @@ func (s *Settings) GetLogLevel() log.Level {
 }
 
 func New(configPath string) (*Settings, error) {
-	viper.SetDefault("Host", "localhost")
-	viper.SetDefault("Port", "8000")
-	viper.SetDefault("ConnTTl", 1)
-	viper.SetDefault("LogLevel", "INFO")
+	viper.SetDefault("Host", "0.0.0.0")
+	viper.SetDefault("Port", "6000")
+	viper.SetDefault("ConnTTl", 10)
+	viper.SetDefault("LogLevel", "DEBUG")
 
 	viper.RegisterAlias("ConnTTl", "con_live_sec")
 	viper.RegisterAlias("LogLevel", "log_level")
