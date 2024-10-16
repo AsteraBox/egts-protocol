@@ -1,4 +1,4 @@
-name: Deploy to dwh3
+name: Deploy to app-back-prod
 
 on:
   workflow_dispatch
@@ -10,23 +10,28 @@ jobs:
     timeout-minutes: 30
     env:
       CONTAINER_NAME: "egts-receiver-time"
-      IMAGE_NAME: "egts-timestamp"
       CONTAINER_PORT: "6000"
       HOST: "0.0.0.0"
       PORT: "6000"
       CONN_LIVE_SEC: "10"
       LOG_LEVEL: "DEBUG"
+      DOCKER_CONTEXT: "app-back-prod"
 
     steps:
       - name: Check for actual
         uses: actions/checkout@v4
-     
-      - name: Build
-        run: >
-          docker build
-          -t ${{ env.IMAGE_NAME }}:latest
-          --no-cache
-          .
+
+      - name: Switch to Docker context
+        run: docker context use ${{ env.DOCKER_CONTEXT }}
+      
+      - name: Login
+        run: |
+          docker login ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }} -u ${{ secrets.NEXUS_REGISTRY_RW }} -p ${{ secrets.NEXUS_REGISTRY_RW_PASSWORD }}
+
+      - name: Pull version
+        run: | 
+          VERSION='latest'
+          docker pull ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/egts-receiver:${VERSION}
 
       - name: Stop previous
         run: >
@@ -50,7 +55,7 @@ jobs:
           -e PORT=${{ env.PORT }}
           -e CONN_LIVE_SEC=${{ env.CONN_LIVE_SEC }}
           -d
-          ${{ env.IMAGE_NAME }}
+          ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/egts-receiver:${VERSION}
 
       - name: Perform cleanup
         run: docker system prune -f
