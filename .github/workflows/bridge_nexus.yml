@@ -8,7 +8,6 @@ on:
 
 jobs:
   bridge_to_nexus:
-      needs: create_current_release_yaml_file
       name: Bridge into Nexus
       runs-on: [self-hosted, git-runner]
       if: github.event.pull_request.merged == true
