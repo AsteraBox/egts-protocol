@@ -1,0 +1,39 @@
+name: Bridge into Nexus
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  bridge_to_nexus:
+      needs: create_current_release_yaml_file
+      name: Bridge into Nexus
+      runs-on: [self-hosted, git-runner]
+      if: github.event.pull_request.merged == true
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+          with:
+            ref: ${{ github.event.release.tag_name }}
+
+        - name: Login
+          run: |
+            docker login ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }} -u ${{ secrets.NEXUS_REGISTRY_RW }} -p ${{ secrets.NEXUS_REGISTRY_RW_PASSWORD }}
+
+        - name: Build and push
+          run: |
+            BUILD_DATE="$(date +"%Y-%m-%d")"
+            docker build -t ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/egts-receiver:latest .
+            docker tag ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/egts-receiver:latest ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/egts-receiver:$BUILD_DATE
+            
+            docker push ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/egts-receiver:latest
+            docker push ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/egts-receiver:$BUILD_DATE
+
+        - name: Clean up!
+          if: ${{ always() }}
+          run: |
+            BUILD_DATE="$(date +"%Y-%m-%d")"
+            docker image rm ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/egts-receiver:$BUILD_DATE
+            docker image rm ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/egts-receiver:latest
