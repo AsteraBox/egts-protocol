@@ -11,7 +11,7 @@ on:
 jobs:
   build_deploy_to_dwh3:
     name: Build and deploy
-    runs-on: self-hosted
+    runs-on: [self-hosted, git-runner]
     timeout-minutes: 30
     env:
       CONTAINER_NAME: "egts-receiver-time"
