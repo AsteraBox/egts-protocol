@@ -21,6 +21,7 @@ jobs:
       CONN_LIVE_SEC: "10"
       LOG_LEVEL: "DEBUG"
       DOCKER_CONTEXT: "app-back-prod"
+      IMAGE_NAME: "egts-receiver"
 
     steps:
       - name: Check for actual
@@ -35,8 +36,8 @@ jobs:
 
       - name: Pull version
         run: | 
-          docker pull ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/egts-receiver:${{ github.event.inputs.version || 'latest' }} || \
-          (echo "Your version not found, latest will be used" && docker pull ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/egts-receiver:latest)
+          docker pull ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version || 'latest' }} || \
+          (echo "Your version not found, latest will be used" && docker pull ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/${{ env.IMAGE_NAME }}:latest)
 
       - name: Stop previous
         run: >
@@ -60,7 +61,7 @@ jobs:
           -e PORT=${{ env.PORT }}
           -e CONN_LIVE_SEC=${{ env.CONN_LIVE_SEC }}
           -d
-          ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/egts-receiver:${{ github.event.inputs.version || 'latest' }}
+          ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version || 'latest' }}
 
       - name: Perform cleanup
         run: docker system prune -f
