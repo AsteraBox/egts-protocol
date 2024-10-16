@@ -1,7 +1,12 @@
 name: Deploy to app-back-prod
 
 on:
-  workflow_dispatch
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Image version in Nexus'
+        required: false
+        default: 'latest'
 
 jobs:
   build_deploy_to_dwh3:
@@ -30,8 +35,8 @@ jobs:
 
       - name: Pull version
         run: | 
-          VERSION='latest'
-          docker pull ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/egts-receiver:${VERSION}
+          docker pull ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/egts-receiver:${{ github.event.inputs.version || 'latest' }} || \
+          (echo "Your version not found, latest will be used" && docker pull ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/egts-receiver:latest)
 
       - name: Stop previous
         run: >
@@ -55,7 +60,7 @@ jobs:
           -e PORT=${{ env.PORT }}
           -e CONN_LIVE_SEC=${{ env.CONN_LIVE_SEC }}
           -d
-          ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/egts-receiver:${VERSION}
+          ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/egts-receiver:${{ github.event.inputs.version || 'latest' }}
 
       - name: Perform cleanup
         run: docker system prune -f
