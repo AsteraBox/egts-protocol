@@ -27,30 +27,27 @@ jobs:
       - name: Check for actual
         uses: actions/checkout@v4
 
-      - name: Switch to Docker context
-        run: docker context use ${{ env.DOCKER_CONTEXT }}
-      
       - name: Login
-        run: |
-          docker login ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }} -u ${{ secrets.NEXUS_REGISTRY_RW }} -p ${{ secrets.NEXUS_REGISTRY_RW_PASSWORD }}
+        run: >
+          docker --context ${{ env.DOCKER_CONTEXT }}
+          login ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }} -u ${{ secrets.NEXUS_REGISTRY_RW }} -p ${{ secrets.NEXUS_REGISTRY_RW_PASSWORD }}
 
       - name: Pull version
-        run: | 
-          docker pull ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version || 'latest' }} || \
-          (echo "Your version not found, latest will be used" && docker pull ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/${{ env.IMAGE_NAME }}:latest)
+        run: >
+          docker --context ${{ env.DOCKER_CONTEXT }}
+          pull ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version || 'latest' }} || \
+          (echo "Your version not found, latest will be used" && docker --context ${{ env.DOCKER_CONTEXT }} pull ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/${{ env.IMAGE_NAME }}:latest)
 
       - name: Stop previous
-        run: >
-          CONTAINER_EXISTS=$(docker ps -a --format '{{.Names}}' --filter "name=${{ env.CONTAINER_NAME }}" -a | wc -w);
-          if  [[ $CONTAINER_EXISTS != 0 ]] ;
-          then docker container stop ${{ env.CONTAINER_NAME }};
-          docker container rm ${{ env.CONTAINER_NAME }};
-          else echo "Container ${{ env.CONTAINER_NAME }} does not exist";
-          fi
+        run: |
+          docker --context ${{ env.DOCKER_CONTEXT }}
+          stop $(docker --context ${{ env.DOCKER_CONTEXT }} ps -a -q --filter name=${{ env.CONTAINER_NAME }}) || true
+          docker --context ${{ env.DOCKER_CONTEXT }} container prune -f
 
       - name: Run container
         run: >
-          docker run
+          docker --context ${{ env.DOCKER_CONTEXT }}
+          run
           --restart unless-stopped
           --name ${{ env.CONTAINER_NAME }}
           -v /etc/hosts:/etc/hosts
@@ -64,4 +61,4 @@ jobs:
           ${{ secrets.FQDN_NEXUS }}:${{ secrets.NEXUS_PORT }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version || 'latest' }}
 
       - name: Perform cleanup
-        run: docker system prune -f
+        run: docker --context ${{ env.DOCKER_CONTEXT }} system prune -f
