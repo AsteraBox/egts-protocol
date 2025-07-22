@@ -38,6 +38,7 @@ func (c *Connector) Init(cfg map[string]string) error {
 		Topic:        topic,
 		WriteTimeout: 10 * time.Second,
 		RequiredAcks: kafka.RequireOne,
+		BatchSize:    1,
 	}
 
 	c.connection = w
